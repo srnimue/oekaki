@@ -1,0 +1,111 @@
+:root{
+  --bg:#f6f2ee;
+  --panel:#fffdfb;
+  --text:#2d2826;
+  --muted:#847b77;
+  --line:#e9dfd8;
+  --accent:#6d5b8f;
+  --accent-soft:#eee8f6;
+  --accent-2:#c77f72;
+  --shadow:0 14px 34px rgba(60,45,38,.08);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(180,152,210,.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(214,154,139,.10), transparent 26%),
+    var(--bg);
+  color:var(--text);
+}
+body.dark{
+  --bg:#1d1b20;
+  --panel:#27242b;
+  --text:#f4eff8;
+  --muted:#b8afb8;
+  --line:#3b3541;
+  --accent:#c5a8ee;
+  --accent-soft:#3a3047;
+  --accent-2:#e4a193;
+  --shadow:0 14px 34px rgba(0,0,0,.22);
+}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{width:min(920px,calc(100% - 28px));margin:0 auto;padding:28px 0 50px}
+.hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding:18px 4px 28px}
+.eyebrow{margin:0 0 4px;font-size:11px;letter-spacing:.22em;color:var(--accent);font-weight:800}
+h1{margin:0;font-size:clamp(30px,6vw,48px);letter-spacing:-.05em}
+.sub{margin:9px 0 0;color:var(--muted);font-size:14px}
+main{display:grid;gap:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.section-head h2{margin:2px 0 0;font-size:18px}
+.step{font-size:10px;letter-spacing:.18em;color:var(--accent);font-weight:800}
+.energy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.energy{
+  border:1px solid var(--line);background:transparent;color:var(--text);border-radius:16px;padding:16px 10px;
+  display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;transition:.18s ease;
+}
+.energy:hover{transform:translateY(-2px);border-color:var(--accent)}
+.energy.active{background:var(--accent-soft);border-color:var(--accent)}
+.energy-icon{font-size:22px;color:var(--accent)}
+.energy strong{font-size:14px}
+.energy small{font-size:11px;color:var(--muted)}
+.primary-btn,.secondary-btn,.done-btn,.icon-btn,.text-btn,.reroll-btn,.lock-btn{
+  border:0;border-radius:12px;transition:.18s ease;
+}
+.primary-btn{background:var(--accent);color:white;padding:11px 15px;font-weight:800}
+.secondary-btn{background:var(--accent-soft);color:var(--accent);padding:10px 14px;font-weight:700}
+.done-btn{background:var(--accent-2);color:white;padding:11px 18px;font-weight:800}
+.primary-btn:hover,.secondary-btn:hover,.done-btn:hover{transform:translateY(-1px);filter:brightness(1.03)}
+.icon-btn{width:40px;height:40px;background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.text-btn{background:transparent;color:var(--muted);padding:6px 8px;font-size:12px}
+.prompt-card{border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.prompt-row{display:grid;grid-template-columns:150px 1fr 44px;align-items:center;min-height:58px;border-bottom:1px solid var(--line);padding:0 10px}
+.prompt-row:last-child{border-bottom:0}
+.prompt-label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:700}
+.prompt-value{font-size:17px;font-weight:800;padding:0 10px}
+.lock-btn,.reroll-btn{background:transparent;color:var(--muted);height:36px}
+.lock-btn{width:30px;font-size:14px}
+.reroll-btn{width:36px;font-size:20px}
+.lock-btn.locked{color:var(--accent)}
+.reroll-btn:hover,.lock-btn:hover{background:var(--accent-soft);color:var(--accent)}
+.bonus-row{background:linear-gradient(90deg,transparent,rgba(109,91,143,.05))}
+.prompt-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+.chip-list{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700}
+.chip button{border:0;background:transparent;color:inherit;padding:0;opacity:.65}
+.hint{margin:12px 0 0;color:var(--muted);font-size:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stats>div{border:1px solid var(--line);border-radius:16px;padding:16px}
+.stats strong{display:block;font-size:28px;color:var(--accent)}
+.stats span{font-size:12px;color:var(--muted)}
+.history-list{display:grid;gap:8px}
+.history-item{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+.history-item strong{display:block;font-size:13px}
+.history-item span{font-size:11px;color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;margin:4px 0}
+footer{text-align:center;color:var(--muted);font-size:11px;padding-top:18px}
+dialog{border:0;background:transparent;padding:0}
+dialog::backdrop{background:rgba(20,16,24,.48);backdrop-filter:blur(3px)}
+.dialog-card{width:min(420px,calc(100vw - 30px));background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+.dialog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.dialog-head h3{margin:0}
+.dialog-card label{display:grid;gap:8px;font-size:12px;font-weight:700}
+.dialog-card input{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);outline:none}
+.dialog-card input:focus{border-color:var(--accent)}
+.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#222;color:#fff;border-radius:999px;padding:10px 16px;font-size:12px;opacity:0;pointer-events:none;transition:.2s ease}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:700px){
+  .app{width:min(100% - 20px,920px);padding-top:18px}
+  .panel{padding:16px;border-radius:18px}
+  .energy-grid{grid-template-columns:repeat(2,1fr)}
+  .section-head{align-items:flex-start}
+  .gacha-panel .section-head{flex-direction:column}
+  .gacha-panel .primary-btn{width:100%}
+  .prompt-row{grid-template-columns:92px 1fr 38px;padding:0 6px}
+  .prompt-value{font-size:15px}
+  .prompt-actions{display:grid;grid-template-columns:1fr 1fr}
+}

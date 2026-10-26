@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>おえかきスイッチ - 試作版</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">DRAWING STARTER</p>
+        <h1>おえかきスイッチ</h1>
+        <p class="sub">「描きたい」を「これ描こ！」まで連れていく、お題ガチャ。</p>
+      </div>
+      <button id="themeBtn" class="icon-btn" aria-label="テーマ切り替え">☾</button>
+    </header>
+
+    <main>
+      <section class="panel mood-panel">
+        <div class="section-head">
+          <div>
+            <span class="step">01</span>
+            <h2>今日はどれくらい描けそう？</h2>
+          </div>
+        </div>
+
+        <div class="energy-grid" id="energyGrid">
+          <button class="energy active" data-level="low">
+            <span class="energy-icon">·</span>
+            <strong>今日は無理</strong>
+            <small>顔だけ・目だけでもOK</small>
+          </button>
+          <button class="energy" data-level="short">
+            <span class="energy-icon">◔</span>
+            <strong>ちょい描き</strong>
+            <small>3〜10分くらい</small>
+          </button>
+          <button class="energy" data-level="normal">
+            <span class="energy-icon">✦</span>
+            <strong>普通に描く</strong>
+            <small>一枚描いてみる</small>
+          </button>
+          <button class="energy" data-level="full">
+            <span class="energy-icon">✺</span>
+            <strong>今日はやるぞ</strong>
+            <small>しっかり描き込みたい</small>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel gacha-panel">
+        <div class="section-head">
+          <div>
+            <span class="step">02</span>
+            <h2>今日の一枚を召喚</h2>
+          </div>
+          <button id="rollAll" class="primary-btn">🎲 お題を引く</button>
+        </div>
+
+        <div class="prompt-card" id="promptCard">
+          <div class="prompt-row" data-key="character">
+            <div class="prompt-label">
+              <span>キャラ</span>
+              <button class="lock-btn" title="固定">🔓</button>
+            </div>
+            <div class="prompt-value">ルシファー</div>
+            <button class="reroll-btn" title="引き直し">↻</button>
+          </div>
+          <div class="prompt-row" data-key="expression">
+            <div class="prompt-label">
+              <span>表情</span>
+              <button class="lock-btn" title="固定">🔓</button>
+            </div>
+            <div class="prompt-value">眠そう</div>
+            <button class="reroll-btn" title="引き直し">↻</button>
+          </div>
+          <div class="prompt-row" data-key="outfit">
+            <div class="prompt-label">
+              <span>服装</span>
+              <button class="lock-btn" title="固定">🔓</button>
+            </div>
+            <div class="prompt-value">ゆるい部屋着</div>
+            <button class="reroll-btn" title="引き直し">↻</button>
+          </div>
+          <div class="prompt-row" data-key="pose">
+            <div class="prompt-label">
+              <span>ポーズ</span>
+              <button class="lock-btn" title="固定">🔓</button>
+            </div>
+            <div class="prompt-value">頬杖</div>
+            <button class="reroll-btn" title="引き直し">↻</button>
+          </div>
+          <div class="prompt-row" data-key="composition">
+            <div class="prompt-label">
+              <span>構図</span>
+              <button class="lock-btn" title="固定">🔓</button>
+            </div>
+            <div class="prompt-value">胸上</div>
+            <button class="reroll-btn" title="引き直し">↻</button>
+          </div>
+          <div class="prompt-row bonus-row" data-key="bonus">
+            <div class="prompt-label">
+              <span>おまけ</span>
+              <button class="lock-btn" title="固定">🔓</button>
+            </div>
+            <div class="prompt-value">眼鏡</div>
+            <button class="reroll-btn" title="引き直し">↻</button>
+          </div>
+        </div>
+
+        <div class="prompt-actions">
+          <button id="copyPrompt" class="secondary-btn">📋 お題をコピー</button>
+          <button id="doneBtn" class="done-btn">✓ 描いた！</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <span class="step">03</span>
+            <h2>キャラライブラリ</h2>
+          </div>
+          <button id="addCharacterBtn" class="secondary-btn">＋ 追加</button>
+        </div>
+        <div id="characterList" class="chip-list"></div>
+        <p class="hint">ここに登録したキャラがお題ガチャに入ります。</p>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <span class="step">04</span>
+            <h2>描いた記録</h2>
+          </div>
+          <button id="clearHistory" class="text-btn">記録を消す</button>
+        </div>
+        <div class="stats">
+          <div><strong id="drawCount">0</strong><span>回 描いた</span></div>
+          <div><strong id="monthCount">0</strong><span>今月</span></div>
+        </div>
+        <div id="historyList" class="history-list">
+          <p class="empty">まだ記録はありません。最初の一枚を描いたらここに残ります。</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>試作版 / データはこのブラウザ内に保存されます。</p>
+    </footer>
+  </div>
+
+  <dialog id="characterDialog">
+    <form method="dialog" class="dialog-card" id="characterForm">
+      <div class="dialog-head">
+        <h3>キャラを追加</h3>
+        <button value="cancel" class="icon-btn">×</button>
+      </div>
+      <label>
+        キャラ名
+        <input id="characterName" type="text" maxlength="30" placeholder="例：ルシファー" autocomplete="off">
+      </label>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary-btn">キャンセル</button>
+        <button id="saveCharacter" value="default" class="primary-btn">追加する</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
