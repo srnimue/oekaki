@@ -1,208 +1,55 @@
-const STORAGE_KEYS = {
-  characters: "okaki.characters",
-  history: "okaki.history",
-  theme: "okaki.theme"
+const STORE="oekakiQuest.v3";
+const skillDefs={face:{name:"顔",icon:"🙂"},expression:{name:"表情",icon:"✦"},hands:{name:"手",icon:"✋"},body:{name:"全身",icon:"◇"},color:{name:"色",icon:"🎨"},background:{name:"背景",icon:"▧"},composition:{name:"構図",icon:"⌗"},clothes:{name:"衣装",icon:"♢"}};
+const promptPools={expression:["眠そう","むすっと","にやり","やわらかい笑顔","照れている","真剣","驚いている","無表情","泣きそう","得意げ"],pose:["頬杖","腕組み","振り向く","座っている","寝転がる","片手を上げる","髪をかき上げる","こちらを見る","歩いている","背伸び"],outfit:["いつもの服","ゆるい部屋着","シャツ","パーカー","ジャケット","和服","スーツ","大きめニット","制服風","コート"],composition:["顔アップ","胸上","腰上","全身","横顔","斜め後ろ","俯瞰","あおり","左右非対称","余白多め"],extra:["眼鏡","飲み物","本","スマホ","花","お菓子","手袋","ぬいぐるみ","帽子","おまけなし"]};
+const questPools={
+zero:[["目だけ描く","好きなキャラの目元だけ。30秒でもOK。",8,4,["face"]],["顔の丸だけ","輪郭とアタリだけでクリア。",6,3,["face"]],["表情ひとつ","顔だけで好きな表情を1個。",9,4,["face","expression"]],["手を1個だけ","自分の手を見ながら1個だけ。",10,5,["hands"]],["線を10本","長い線・短い線を適当に10本。",5,2,["composition"]],["昔の絵を1分見る","直したい所を1つだけ描き直す。",8,4,["composition"]]],
+low:[["3分ラフ","3分だけ。完成させなくていい。",12,6,["composition"]],["横顔チャレンジ","横顔を1つだけ描く。",15,7,["face"]],["表情差分","同じ顔で表情を2種類。",16,8,["expression","face"]],["手＋小物","手に何か1つ持たせる。",18,9,["hands"]],["服のしわ3本","袖や裾のしわを少し観察。",14,7,["clothes"]],["色を3色だけ","3色に絞ってざっくり塗る。",16,8,["color"]]],
+normal:[["上半身を描く","胸上〜腰上まで1人描く。",22,11,["face","body"]],["ポーズ付きラフ","棒人間からポーズを1つ。",24,12,["body","composition"]],["衣装アレンジ","いつもと違う服を着せる。",24,12,["clothes"]],["光を意識して塗る","明るい所と暗い所を分ける。",25,13,["color"]],["背景を少し足す","机・窓・椅子など1つ置く。",25,13,["background","composition"]],["苦手部位を1回","手・足・横顔などを1つ練習。",26,13,["hands","body"]]],
+high:[["全身を1体","ラフでもいいので全身を通す。",35,18,["body","composition"]],["完成絵を進める","線画・塗り・仕上げを大きく進める。",50,25,["color","composition"]],["背景込み1枚","簡単な場所を入れて1枚作る。",45,22,["background","composition"]],["苦手を3回描く","苦手部位を3パターン試す。",40,20,["hands","body"]],["衣装デザイン","新しい衣装を1案作る。",40,20,["clothes"]],["昔の絵をリメイク","過去絵を今の描き方で描き直す。",50,25,["face","body","color"]]]
 };
-
-const defaults = {
-  characters: ["ルシファー", "うちの子", "推しキャラ"],
-  expression: ["眠そう", "むすっとしている", "にやり", "びっくり", "やわらかい笑顔", "照れている", "真剣", "無表情"],
-  outfit: ["ゆるい部屋着", "シャツ一枚", "黒いタートル", "パーカー", "ジャケット", "制服風", "いつもの服", "少しきれいめ"],
-  pose: ["頬杖", "腕組み", "振り向く", "座っている", "寝転がる", "手を伸ばす", "髪をかき上げる", "こちらを見る"],
-  composition: ["顔アップ", "胸上", "腰上", "全身", "横顔", "斜め後ろ", "俯瞰", "あおり"],
-  bonus: ["眼鏡", "飲み物", "スマホ", "本", "ぬいぐるみ", "手袋", "アクセサリー", "おまけなし"]
-};
-
-const easyPools = {
-  expression: ["好きな表情", "眠そう", "むすっと", "笑顔"],
-  outfit: ["服は適当でOK", "いつもの服"],
-  pose: ["顔だけ", "目だけ", "横顔だけ", "手を1個", "棒人間でもOK"],
-  composition: ["顔アップ", "バストアップ"],
-  bonus: ["おまけなし", "眼鏡だけ", "小物1個"]
-};
-
-let state = {
-  level: "low",
-  characters: load(STORAGE_KEYS.characters, defaults.characters),
-  history: load(STORAGE_KEYS.history, []),
-  locks: {},
-  prompt: {}
-};
-
-function load(key, fallback) {
-  try {
-    const data = JSON.parse(localStorage.getItem(key));
-    return data ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-function save(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-function poolFor(key) {
-  if (key === "character") return state.characters.length ? state.characters : ["好きなキャラ"];
-  if (state.level === "low" && easyPools[key]) return easyPools[key];
-  return defaults[key];
-}
-function rollKey(key) {
-  state.prompt[key] = pick(poolFor(key));
-  const row = document.querySelector(`.prompt-row[data-key="${key}"]`);
-  row.querySelector(".prompt-value").textContent = state.prompt[key];
-}
-function rollAll() {
-  document.querySelectorAll(".prompt-row").forEach(row => {
-    const key = row.dataset.key;
-    if (!state.locks[key]) rollKey(key);
-  });
-}
-function promptText() {
-  const labels = {
-    character:"キャラ", expression:"表情", outfit:"服装",
-    pose:"ポーズ", composition:"構図", bonus:"おまけ"
-  };
-  return Object.entries(labels).map(([k,v]) => `${v}：${state.prompt[k] || ""}`).join("\n");
-}
-function toast(text) {
-  const el = document.getElementById("toast");
-  el.textContent = text;
-  el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 1600);
-}
-function renderCharacters() {
-  const wrap = document.getElementById("characterList");
-  wrap.innerHTML = "";
-  state.characters.forEach((name, i) => {
-    const chip = document.createElement("span");
-    chip.className = "chip";
-    chip.innerHTML = `<span>${escapeHtml(name)}</span><button title="削除" data-index="${i}">×</button>`;
-    chip.querySelector("button").addEventListener("click", () => {
-      state.characters.splice(i,1);
-      save(STORAGE_KEYS.characters, state.characters);
-      renderCharacters();
-      if (!state.characters.length) rollKey("character");
-    });
-    wrap.appendChild(chip);
-  });
-}
-function renderHistory() {
-  const list = document.getElementById("historyList");
-  const count = state.history.length;
-  document.getElementById("drawCount").textContent = count;
-
-  const now = new Date();
-  const thisMonth = state.history.filter(x => {
-    const d = new Date(x.date);
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-  }).length;
-  document.getElementById("monthCount").textContent = thisMonth;
-
-  if (!count) {
-    list.innerHTML = `<p class="empty">まだ記録はありません。最初の一枚を描いたらここに残ります。</p>`;
-    return;
-  }
-  list.innerHTML = state.history.slice().reverse().map(item => {
-    const d = new Date(item.date);
-    const date = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-    return `<div class="history-item">
-      <strong>${escapeHtml(item.title)}</strong>
-      <span>${date}</span>
-    </div>`;
-  }).join("");
-}
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, m => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[m]));
-}
-
-document.querySelectorAll(".energy").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".energy").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    state.level = btn.dataset.level;
-    rollAll();
-  });
-});
-
-document.getElementById("rollAll").addEventListener("click", rollAll);
-
-document.querySelectorAll(".prompt-row").forEach(row => {
-  const key = row.dataset.key;
-  row.querySelector(".reroll-btn").addEventListener("click", () => rollKey(key));
-  row.querySelector(".lock-btn").addEventListener("click", e => {
-    state.locks[key] = !state.locks[key];
-    e.currentTarget.textContent = state.locks[key] ? "🔒" : "🔓";
-    e.currentTarget.classList.toggle("locked", state.locks[key]);
-    toast(state.locks[key] ? "この項目を固定しました" : "固定を解除しました");
-  });
-});
-
-document.getElementById("copyPrompt").addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(promptText());
-    toast("お題をコピーしました");
-  } catch {
-    toast("コピーできませんでした");
-  }
-});
-
-document.getElementById("doneBtn").addEventListener("click", () => {
-  const title = `${state.prompt.character || "キャラ"} / ${state.prompt.pose || "お題"}`;
-  state.history.push({ date: new Date().toISOString(), title, prompt: {...state.prompt} });
-  save(STORAGE_KEYS.history, state.history);
-  renderHistory();
-  toast("描いた！を記録しました ✦");
-});
-
-const dialog = document.getElementById("characterDialog");
-document.getElementById("addCharacterBtn").addEventListener("click", () => {
-  document.getElementById("characterName").value = "";
-  dialog.showModal();
-  setTimeout(() => document.getElementById("characterName").focus(), 50);
-});
-document.getElementById("characterForm").addEventListener("submit", e => {
-  const submitter = e.submitter;
-  if (submitter && submitter.value === "cancel") return;
-  e.preventDefault();
-  const input = document.getElementById("characterName");
-  const name = input.value.trim();
-  if (!name) {
-    toast("キャラ名を入力してね");
-    return;
-  }
-  state.characters.push(name);
-  save(STORAGE_KEYS.characters, state.characters);
-  renderCharacters();
-  dialog.close();
-  toast(`${name} を追加しました`);
-});
-
-document.getElementById("clearHistory").addEventListener("click", () => {
-  if (!state.history.length) return;
-  if (confirm("描いた記録をすべて消しますか？")) {
-    state.history = [];
-    save(STORAGE_KEYS.history, state.history);
-    renderHistory();
-    toast("記録を消しました");
-  }
-});
-
-document.getElementById("themeBtn").addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  const dark = document.body.classList.contains("dark");
-  document.getElementById("themeBtn").textContent = dark ? "☀" : "☾";
-  localStorage.setItem(STORAGE_KEYS.theme, dark ? "dark" : "light");
-});
-
-if (localStorage.getItem(STORAGE_KEYS.theme) === "dark") {
-  document.body.classList.add("dark");
-  document.getElementById("themeBtn").textContent = "☀";
-}
-
-renderCharacters();
-renderHistory();
-rollAll();
+const achievements=[{id:"first",icon:"✎",name:"最初の一歩",desc:"初めて描いた記録",test:s=>s.draws>=1},{id:"five",icon:"✦",name:"5回描いた",desc:"描いた回数が5回",test:s=>s.draws>=5},{id:"twenty",icon:"★",name:"20回描いた",desc:"描いた回数が20回",test:s=>s.draws>=20},{id:"tiny",icon:"·",name:"1分でも前進",desc:"小さな記録を3回",test:s=>s.tinyWins>=3},{id:"boss",icon:"▣",name:"魔王討伐",desc:"ボスを1回倒す",test:s=>s.bossKills>=1},{id:"face10",icon:"🙂",name:"顔慣れ",desc:"顔EXPが100以上",test:s=>s.skills.face>=100},{id:"hands10",icon:"✋",name:"手に挑んだ",desc:"手EXPが100以上",test:s=>s.skills.hands>=100},{id:"allround",icon:"◇",name:"いろいろ描いた",desc:"6分野以上にEXP",test:s=>Object.values(s.skills).filter(v=>v>0).length>=6}];
+const freshState=()=>({level:1,exp:0,totalExp:0,coins:0,tickets:3,energy:"normal",bossHp:300,bossMax:300,bossKills:0,draws:0,tinyWins:0,questClears:0,characters:["ルシファー","うちの子","推しキャラ"],prompt:{},quests:[],skills:Object.fromEntries(Object.keys(skillDefs).map(k=>[k,0])),logs:[],unlocked:[],pending:null});
+let state=load();
+function load(){try{return {...freshState(),...(JSON.parse(localStorage.getItem(STORE))||{})}}catch{return freshState()}}
+function save(){localStorage.setItem(STORE,JSON.stringify(state))}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function expNeed(){return 100+(state.level-1)*25}
+function titleFor(l){if(l>=12)return"伝説の絵描き";if(l>=8)return"熟練の絵描き";if(l>=5)return"旅する絵描き";if(l>=2)return"駆け出し絵描き";return"見習い絵描き"}
+function skillLevel(x){return Math.floor(x/100)+1}
+function addLog(text){state.logs.push({date:new Date().toISOString(),text});state.logs=state.logs.slice(-40)}
+function toast(text){const t=document.getElementById("toast");t.textContent=text;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1500)}
+function addExp(n){state.exp+=n;state.totalExp+=n;let up=false;while(state.exp>=expNeed()){state.exp-=expNeed();state.level++;state.tickets++;state.coins+=20;up=true}if(up)showLevelUp()}
+function damageBoss(n){state.bossHp=Math.max(0,state.bossHp-n);if(state.bossHp===0){state.bossKills++;state.coins+=100;state.tickets+=3;addLog(`白紙の魔王を撃破！ 周回 ${state.bossKills}`);toast("BOSS CLEAR! 🏆");state.bossMax=300+state.bossKills*50;state.bossHp=state.bossMax}}
+function skillAdd(tags,amount){[...new Set(tags)].forEach(k=>{if(k in state.skills)state.skills[k]+=amount})}
+function ensureQuests(){if(!state.quests.length)generateQuests(false)}
+function generateQuests(notify=true){state.quests=shuffle(questPools[state.energy]).slice(0,3).map((q,i)=>({id:Date.now()+i,title:q[0],desc:q[1],exp:q[2],coins:q[3],tags:q[4],done:false}));save();renderQuests();if(notify)toast("今の気力向けに更新したよ")}
+function setEnergy(e){state.energy=e;const lines={zero:"今日は軽くていい。1個描けばもう前進。",low:"ちょっとだけ描く日にしよう。",normal:"無理せず、1つ進めてみよう。",high:"今日は伸ばせそう。大きめクエストいける。"};document.getElementById("coachLine").textContent=lines[e];generateQuests(false);save();render()}
+function render(){document.getElementById("level").textContent=state.level;document.getElementById("titleName").textContent=titleFor(state.level);document.getElementById("coins").textContent=state.coins;document.getElementById("tickets").textContent=state.tickets;document.getElementById("ticketInline").textContent=state.tickets;document.getElementById("expText").textContent=`${state.exp} / ${expNeed()}`;document.getElementById("expBar").style.width=`${Math.min(100,state.exp/expNeed()*100)}%`;document.getElementById("bossText").textContent=`${state.bossHp} / ${state.bossMax} HP`;document.getElementById("bossLabel").textContent=`HP ${state.bossHp}`;document.getElementById("bossBar").style.width=`${state.bossHp/state.bossMax*100}%`;document.getElementById("drawCount").textContent=state.draws;document.getElementById("totalExp").textContent=state.totalExp;document.getElementById("bossKills").textContent=state.bossKills;document.getElementById("questCount").textContent=state.questClears;document.querySelectorAll(".energy-card").forEach(b=>b.classList.toggle("active",b.dataset.energy===state.energy));renderQuests();renderPrompt();renderSkills();renderAchievements();renderCharacters();renderLogs()}
+function renderQuests(){const wrap=document.getElementById("questGrid");wrap.innerHTML=state.quests.map(q=>`<article class="quest-card ${q.done?"done":""}"><div class="stars">${"★".repeat(Math.min(5,Math.max(1,Math.ceil(q.exp/12))))}</div><h3>${esc(q.title)}</h3><p>${esc(q.desc)}</p><div class="reward"><span>EXP +${q.exp}</span><span>🪙 +${q.coins}</span></div><button data-id="${q.id}" ${q.done?"disabled":""}>${q.done?"達成済み":"これ描いた！"}</button></article>`).join("");wrap.querySelectorAll("button[data-id]").forEach(btn=>btn.addEventListener("click",()=>{const q=state.quests.find(x=>String(x.id)===btn.dataset.id);if(!q||q.done)return;state.pending={type:"quest",questId:q.id,exp:q.exp,coins:q.coins,tags:q.tags,title:q.title,damage:Math.max(6,Math.round(q.exp*.8))};openComplete(q.tags)}))}
+function openComplete(prefill=[]){state._selectedTags=[...prefill];document.getElementById("drawMemo").value="";renderTagChoices();document.getElementById("completeDialog").showModal()}
+function renderTagChoices(){const wrap=document.getElementById("tagChoices");wrap.innerHTML=Object.entries(skillDefs).map(([k,v])=>`<button type="button" class="tag-choice ${state._selectedTags.includes(k)?"active":""}" data-tag="${k}">${v.icon} ${v.name}</button>`).join("");wrap.querySelectorAll(".tag-choice").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.tag;state._selectedTags=state._selectedTags.includes(k)?state._selectedTags.filter(x=>x!==k):[...state._selectedTags,k];renderTagChoices()}))}
+function finishPending(){const p=state.pending;if(!p)return;const tags=state._selectedTags||[];const memo=document.getElementById("drawMemo").value.trim();state.draws++;addExp(p.exp);state.coins+=p.coins;damageBoss(p.damage);skillAdd(tags,Math.max(8,Math.round(p.exp*.7)));if(p.type==="quest"){const q=state.quests.find(x=>x.id===p.questId);if(q)q.done=true;state.questClears++}if(p.type==="tiny")state.tinyWins++;addLog(`${p.title}（EXP +${p.exp}）${memo?` / ${memo}`:""}`);state.pending=null;checkAchievements();save();render();toast(`EXP +${p.exp} / BOSS -${p.damage}HP`)}
+function renderPrompt(){document.querySelectorAll(".prompt-card").forEach(card=>{const k=card.dataset.key,val=state.prompt[k];card.querySelector("strong").textContent=val||"？？？";card.querySelector("small").textContent=val?"もう一度で引き直し":"タップで召喚"})}
+function revealPrompt(key,consume){if(consume&&state.prompt[key]){if(state.tickets<=0){toast("引き直し券がない！");return}state.tickets--}let v;if(key==="character")v=pick(state.characters.length?state.characters:["好きなキャラ"]);else v=pick(promptPools[key]);state.prompt[key]=v;const c=document.querySelector(`.prompt-card[data-key="${key}"]`);c.classList.remove("reveal");void c.offsetWidth;c.classList.add("reveal");save();render()}
+function renderSkills(){const wrap=document.getElementById("skillGrid");wrap.innerHTML=Object.entries(skillDefs).map(([k,v])=>{const x=state.skills[k],lv=skillLevel(x),within=x%100;return `<div class="skill-card"><div class="skill-top"><strong>${v.icon} ${v.name}</strong><span>Lv.${lv}</span></div><div class="bar"><div class="fill" style="width:${within}%"></div></div><div class="skill-meta"><span>${x} EXP</span><span>次まで ${100-within}</span></div></div>`}).join("")}
+function checkAchievements(){achievements.forEach(a=>{if(a.test(state)&&!state.unlocked.includes(a.id)){state.unlocked.push(a.id);state.coins+=15;addLog(`実績解除：${a.name}`);toast(`実績解除：${a.name} ✦`)}})}
+function renderAchievements(){const wrap=document.getElementById("achievementGrid");wrap.innerHTML=achievements.map(a=>{const on=state.unlocked.includes(a.id);return `<div class="achievement ${on?"":"locked"}"><div class="achievement-icon">${a.icon}</div><strong>${esc(a.name)}</strong><span>${esc(a.desc)}${on?" / 解除済み":""}</span></div>`}).join("");document.getElementById("achievementCount").textContent=`${state.unlocked.length} / ${achievements.length}`}
+function renderCharacters(){const wrap=document.getElementById("characterList");wrap.innerHTML=state.characters.map((n,i)=>`<span class="chip"><span>${esc(n)}</span><button data-i="${i}">×</button></span>`).join("");wrap.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{state.characters.splice(Number(b.dataset.i),1);save();renderCharacters()}))}
+function renderLogs(){const wrap=document.getElementById("logList");if(!state.logs.length){wrap.innerHTML='<p class="empty">まだ冒険記録はありません。</p>';return}wrap.innerHTML=state.logs.slice().reverse().map(x=>{const d=new Date(x.date),ds=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;return `<div class="log-item"><strong>${esc(x.text)}</strong><span>${ds}</span></div>`}).join("")}
+function showLevelUp(){document.getElementById("levelUpText").textContent=`Lv.${state.level}`;document.getElementById("levelUp").classList.add("show")}
+document.querySelectorAll(".energy-card").forEach(b=>b.addEventListener("click",()=>setEnergy(b.dataset.energy)));
+document.getElementById("refreshQuests").addEventListener("click",()=>generateQuests());
+document.getElementById("tinyWinBtn").addEventListener("click",()=>{state.pending={type:"tiny",exp:5,coins:2,tags:[],title:"1分だけ描いた",damage:5};openComplete([])});
+document.querySelectorAll(".prompt-card").forEach(c=>c.addEventListener("click",()=>revealPrompt(c.dataset.key,true)));
+document.getElementById("summonAll").addEventListener("click",()=>{["character","expression","pose","outfit","composition","extra"].forEach((k,i)=>setTimeout(()=>revealPrompt(k,false),i*70));document.getElementById("summonMessage").textContent="今日の一枚を召喚中…"});
+document.getElementById("clearPrompt").addEventListener("click",()=>{state.prompt={};save();render();document.getElementById("summonMessage").textContent="また迷ったら、全部おまかせで。"});
+document.getElementById("completeForm").addEventListener("submit",e=>{if(e.submitter?.value==="cancel"){state.pending=null;return}e.preventDefault();finishPending();document.getElementById("completeDialog").close()});
+document.getElementById("addCharacterBtn").addEventListener("click",()=>{document.getElementById("characterName").value="";document.getElementById("characterDialog").showModal()});
+document.getElementById("characterForm").addEventListener("submit",e=>{if(e.submitter?.value==="cancel")return;e.preventDefault();const n=document.getElementById("characterName").value.trim();if(!n){toast("キャラ名を入れてね");return}state.characters.push(n);save();renderCharacters();document.getElementById("characterDialog").close();toast(`${n} を追加したよ`)});
+document.getElementById("levelUp").addEventListener("click",e=>e.currentTarget.classList.remove("show"));
+document.getElementById("themeBtn").addEventListener("click",()=>{document.body.classList.toggle("dark");const dark=document.body.classList.contains("dark");document.getElementById("themeBtn").textContent=dark?"☀":"☾";localStorage.setItem("oekakiQuest.theme",dark?"dark":"light")});
+if(localStorage.getItem("oekakiQuest.theme")==="dark"){document.body.classList.add("dark");document.getElementById("themeBtn").textContent="☀"}
+document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("試作版のデータをすべて初期化しますか？")){localStorage.removeItem(STORE);state=freshState();ensureQuests();save();render();toast("初期化しました")}});
+ensureQuests();checkAchievements();render();
