@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#7662a8">
-  <title>おえかきクエスト v3</title>
+  <title>おえかきクエスト v4.1</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,138 +13,176 @@
       <div>
         <p class="eyebrow">DRAWING HABIT RPG</p>
         <h1>おえかきクエスト</h1>
-        <p class="subtitle">描けた量じゃなく、描いた経験をためていく。</p>
+        <p class="subtitle">描き始めやすく、描いた経験はちゃんと残る。</p>
       </div>
       <button id="themeBtn" class="icon-btn" aria-label="テーマ切り替え">☾</button>
     </header>
 
+    <nav class="tabbar">
+      <button class="tab active" data-tab="home">ホーム</button>
+      <button class="tab" data-tab="collection">コレクション</button>
+      <button class="tab" data-tab="log">記録</button>
+    </nav>
+
     <main>
-      <section class="panel profile-panel">
-        <div class="profile-left">
-          <div class="avatar">✎</div>
-          <div>
-            <p class="mini">PLAYER</p>
-            <h2 id="titleName">見習い絵描き</h2>
-            <p id="coachLine" class="coach">今日はどれくらい描けそう？</p>
+      <section class="tab-page active" id="tab-home">
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">ENERGY</span>
+              <h2>今日はどんな感じ？</h2>
+            </div>
+            <span class="soft-note">いつでも変更OK</span>
           </div>
-        </div>
-        <div class="profile-stats">
-          <div class="level-box"><span>Lv.</span><strong id="level">1</strong></div>
-          <div class="exp-box">
-            <div class="row-between"><span>EXP</span><span id="expText">0 / 100</span></div>
-            <div class="bar"><div id="expBar" class="fill"></div></div>
+          <div class="energy-grid">
+            <button class="energy-card" data-energy="zero"><span class="energy-symbol">·</span><strong>今日は無理</strong><small>30秒〜3分。部位だけでもクリア</small></button>
+            <button class="energy-card" data-energy="low"><span class="energy-symbol">◔</span><strong>ちょい描き</strong><small>3〜10分。気軽なラフ中心</small></button>
+            <button class="energy-card active" data-energy="normal"><span class="energy-symbol">✦</span><strong>普通に描く</strong><small>10〜30分。しっかり1つ進める</small></button>
+            <button class="energy-card" data-energy="high"><span class="energy-symbol">★</span><strong>今日はやるぞ</strong><small>完成や苦手練習にも挑戦</small></button>
           </div>
-          <div class="mini-stat"><span>🪙</span><strong id="coins">0</strong></div>
-          <div class="mini-stat"><span>🎟️</span><strong id="tickets">3</strong></div>
-        </div>
-      </section>
+          <div class="gentle-rule">連続記録なし・休んでも減点なし・描いた分だけ増える。</div>
+        </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <span class="section-kicker">ENERGY</span>
-            <h2>今日はどんな感じ？</h2>
+        <section class="panel">
+          <div class="section-head">
+            <div><span class="section-kicker">QUEST BOARD</span><h2>いまの気力向けクエスト</h2></div>
+            <button id="refreshQuests" class="small-btn">↻ 全部引き直す</button>
           </div>
-          <span class="soft-note">いつでも変更OK</span>
-        </div>
-        <div class="energy-grid">
-          <button class="energy-card" data-energy="zero"><span class="energy-symbol">·</span><strong>今日は無理</strong><small>30秒〜3分。部位だけでもクリア</small></button>
-          <button class="energy-card" data-energy="low"><span class="energy-symbol">◔</span><strong>ちょい描き</strong><small>3〜10分。気軽なラフ中心</small></button>
-          <button class="energy-card active" data-energy="normal"><span class="energy-symbol">✦</span><strong>普通に描く</strong><small>10〜30分。しっかり1つ進める</small></button>
-          <button class="energy-card" data-energy="high"><span class="energy-symbol">★</span><strong>今日はやるぞ</strong><small>完成や苦手練習にも挑戦</small></button>
-        </div>
-        <div class="gentle-rule">連続記録なし・休んでも減点なし・描いた分だけ増える。</div>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div><span class="section-kicker">QUEST BOARD</span><h2>いまの気力向けクエスト</h2></div>
-          <button id="refreshQuests" class="small-btn">↻ 全部引き直す</button>
-        </div>
-        <div id="questGrid" class="quest-grid"></div>
-        <div class="quest-footer">
-          <button id="tinyWinBtn" class="tiny-win">今日は「1分だけ描いた」でも記録する</button>
-          <span>ちょっと描いた日もEXPになる。</span>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div><span class="section-kicker">SUMMON</span><h2>お題召喚</h2></div>
-          <span class="soft-note">🎟️ <strong id="ticketInline">3</strong> 引き直し券</span>
-        </div>
-        <div class="summon-box">
-          <div id="summonMessage" class="summon-message">迷ったら、全部おまかせでもOK。</div>
-          <div class="prompt-grid">
-            <button class="prompt-card" data-key="character"><span>CHARACTER</span><strong>？？？</strong><small>タップで召喚</small></button>
-            <button class="prompt-card" data-key="expression"><span>EXPRESSION</span><strong>？？？</strong><small>タップで召喚</small></button>
-            <button class="prompt-card" data-key="pose"><span>POSE</span><strong>？？？</strong><small>タップで召喚</small></button>
-            <button class="prompt-card" data-key="outfit"><span>OUTFIT</span><strong>？？？</strong><small>タップで召喚</small></button>
-            <button class="prompt-card" data-key="composition"><span>COMPOSITION</span><strong>？？？</strong><small>タップで召喚</small></button>
-            <button class="prompt-card" data-key="extra"><span>EXTRA</span><strong>？？？</strong><small>タップで召喚</small></button>
+          <div id="questGrid" class="quest-grid"></div>
+          <div class="quest-footer">
+            <button id="tinyWinBtn" class="tiny-win">今日は「1分だけ描いた」でも記録する</button>
+            <span>ちょっと描いた日もEXPになる。</span>
           </div>
-          <div class="summon-actions">
-            <button id="summonAll" class="primary-btn">✦ 一気に召喚</button>
-            <button id="clearPrompt" class="secondary-btn">全部伏せる</button>
+        </section>
+
+        <section class="panel player-strip">
+          <div class="player-strip-main">
+            <button id="avatarButton" class="avatar avatar-button" type="button" aria-label="プレイヤーアイコンを変更">✎</button>
+            <input id="avatarInput" type="file" accept="image/*" hidden>
+            <div class="player-strip-info">
+              <div class="player-name-row">
+                <div>
+                  <p class="mini">PLAYER</p>
+                  <h2 id="titleName">見習い絵描き</h2>
+                </div>
+                <button id="changeAvatarBtn" class="avatar-change-btn" type="button">アイコン変更</button>
+              </div>
+              <div class="player-exp-row">
+                <span class="player-level">Lv.<strong id="level">1</strong></span>
+                <div class="player-exp-grow">
+                  <div class="row-between"><span>EXP</span><span id="expText">0 / 100</span></div>
+                  <div class="bar"><div id="expBar" class="fill"></div></div>
+                </div>
+                <span class="player-currency">🪙 <strong id="coins">0</strong></span>
+                <span class="player-currency">🎟️ <strong id="tickets">3</strong></span>
+              </div>
+              <p id="coachLine" class="coach compact-coach">無理せず、1つ進めてみよう。</p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <div><span class="section-kicker">SKILL EXP</span><h2>描いてきた経験</h2></div>
-          <span class="soft-note">画力評価ではなく「触れた回数」</span>
-        </div>
-        <div id="skillGrid" class="skill-grid"></div>
-      </section>
-
-      <section class="panel boss-panel">
-        <div class="section-head">
-          <div><span class="section-kicker">LONG QUEST</span><h2>白紙の魔王</h2></div>
-          <span id="bossLabel" class="boss-chip">HP 300</span>
-        </div>
-        <div class="boss-wrap">
-          <div class="boss-icon">▣</div>
-          <div class="boss-main">
-            <div class="row-between"><strong>長期ボス</strong><span id="bossText">300 / 300 HP</span></div>
-            <div class="bar boss-bar"><div id="bossBar" class="fill boss-fill"></div></div>
-            <p>期限なし。落書きでもダメージ。倒したら次の周回へ。</p>
+        <section class="panel">
+          <div class="section-head">
+            <div><span class="section-kicker">SUMMON</span><h2>お題召喚</h2></div>
+            <span class="soft-note">🎟️ <strong id="ticketInline">3</strong> 引き直し券</span>
           </div>
-        </div>
+          <div class="summon-box">
+            <div id="summonMessage" class="summon-message">迷ったら、全部おまかせでもOK。</div>
+            <div class="prompt-grid">
+              <button class="prompt-card" data-key="character"><span>CHARACTER</span><strong>？？？</strong><small>タップで召喚</small></button>
+              <button class="prompt-card" data-key="expression"><span>EXPRESSION</span><strong>？？？</strong><small>タップで召喚</small></button>
+              <button class="prompt-card" data-key="pose"><span>POSE</span><strong>？？？</strong><small>タップで召喚</small></button>
+              <button class="prompt-card" data-key="outfit"><span>OUTFIT</span><strong>？？？</strong><small>タップで召喚</small></button>
+              <button class="prompt-card" data-key="composition"><span>COMPOSITION</span><strong>？？？</strong><small>タップで召喚</small></button>
+              <button class="prompt-card" data-key="extra"><span>EXTRA</span><strong>？？？</strong><small>タップで召喚</small></button>
+            </div>
+            <div class="summon-actions">
+              <button id="summonAll" class="primary-btn">✦ 一気に召喚</button>
+              <button id="clearPrompt" class="secondary-btn">全部伏せる</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div><span class="section-kicker">SKILL EXP</span><h2>描いてきた経験</h2></div>
+            <span class="soft-note">画力評価ではなく「触れた回数」</span>
+          </div>
+          <div id="skillGrid" class="skill-grid"></div>
+        </section>
+
+        <section class="panel boss-panel">
+          <div class="section-head">
+            <div><span class="section-kicker">LONG QUEST</span><h2>白紙の魔王</h2></div>
+            <span id="bossLabel" class="boss-chip">HP 300</span>
+          </div>
+          <div class="boss-wrap">
+            <div class="boss-icon">▣</div>
+            <div class="boss-main">
+              <div class="row-between"><strong>長期ボス</strong><span id="bossText">300 / 300 HP</span></div>
+              <div class="bar boss-bar"><div id="bossBar" class="fill boss-fill"></div></div>
+              <p>期限なし。落書きでもダメージ。倒したら記念カードが増える。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div><span class="section-kicker">PARTY</span><h2>キャラライブラリ</h2></div>
+            <button id="addCharacterBtn" class="small-btn">＋ 追加</button>
+          </div>
+          <div id="characterList" class="chip-list"></div>
+        </section>
       </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <div><span class="section-kicker">ACHIEVEMENTS</span><h2>実績</h2></div>
-          <span id="achievementCount" class="soft-note">0 / 0</span>
-        </div>
-        <div id="achievementGrid" class="achievement-grid"></div>
+      <section class="tab-page" id="tab-collection">
+        <section class="panel next-unlock-panel">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">NEXT UNLOCK</span>
+              <h2>もうすぐ解放</h2>
+            </div>
+          </div>
+          <div id="nextUnlockCard" class="next-unlock-card"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">COLLECTION</span>
+              <h2>コレクション帳</h2>
+            </div>
+            <span id="collectionCount" class="soft-note">0 / 0</span>
+          </div>
+          <div class="collection-filters">
+            <button class="filter-btn active" data-filter="all">すべて</button>
+            <button class="filter-btn" data-filter="badge">バッジ</button>
+            <button class="filter-btn" data-filter="title">称号</button>
+            <button class="filter-btn" data-filter="background">背景</button>
+            <button class="filter-btn" data-filter="card">記念カード</button>
+          </div>
+          <div id="collectionGrid" class="collection-grid"></div>
+        </section>
       </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <div><span class="section-kicker">PARTY</span><h2>キャラライブラリ</h2></div>
-          <button id="addCharacterBtn" class="small-btn">＋ 追加</button>
-        </div>
-        <div id="characterList" class="chip-list"></div>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div><span class="section-kicker">LOG</span><h2>冒険記録</h2></div>
-          <button id="resetBtn" class="text-btn">初期化</button>
-        </div>
-        <div class="summary-grid">
-          <div><strong id="drawCount">0</strong><span>描いた回数</span></div>
-          <div><strong id="totalExp">0</strong><span>累計EXP</span></div>
-          <div><strong id="bossKills">0</strong><span>ボス撃破</span></div>
-          <div><strong id="questCount">0</strong><span>クエスト達成</span></div>
-        </div>
-        <div id="logList" class="log-list"></div>
+      <section class="tab-page" id="tab-log">
+        <section class="panel">
+          <div class="section-head">
+            <div><span class="section-kicker">LOG</span><h2>冒険記録</h2></div>
+            <button id="resetBtn" class="text-btn">初期化</button>
+          </div>
+          <div class="summary-grid">
+            <div><strong id="drawCount">0</strong><span>描いた回数</span></div>
+            <div><strong id="totalExp">0</strong><span>累計EXP</span></div>
+            <div><strong id="bossKills">0</strong><span>ボス撃破</span></div>
+            <div><strong id="questCount">0</strong><span>クエスト達成</span></div>
+          </div>
+          <div id="logList" class="log-list"></div>
+        </section>
       </section>
     </main>
 
-    <footer>試作 v3 / データはこのブラウザ内に保存されます。</footer>
+    <footer>試作 v4.1 / データはこのブラウザ内に保存されます。</footer>
   </div>
 
   <dialog id="completeDialog">
@@ -153,7 +191,7 @@
         <div><span class="section-kicker">QUEST CLEAR</span><h3>何を描いた？</h3></div>
         <button class="icon-btn" value="cancel">×</button>
       </div>
-      <p class="dialog-desc">近いものだけ選べばOK。分野別EXPに反映されます。</p>
+      <p class="dialog-desc">近いものだけ選べばOK。分野別EXPとコレクション条件に反映されます。</p>
       <div id="tagChoices" class="tag-choices"></div>
       <label class="memo-label">ひとこと（任意）
         <input id="drawMemo" type="text" maxlength="60" placeholder="例：横顔ちょっと分かったかも">
@@ -183,6 +221,16 @@
       <span>LEVEL UP!</span>
       <strong id="levelUpText">Lv.2</strong>
       <small>引き直し券 +1 / コイン +20</small>
+    </div>
+  </div>
+
+  <div id="unlockOverlay" class="overlay">
+    <div class="unlock-card">
+      <span class="unlock-kicker">COLLECTION UNLOCKED!</span>
+      <div id="unlockIcon" class="unlock-icon">✦</div>
+      <strong id="unlockName">新しいコレクション</strong>
+      <small id="unlockType">バッジ</small>
+      <button id="unlockClose" class="primary-btn">コレクションを見る</button>
     </div>
   </div>
 

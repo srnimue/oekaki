@@ -1,4 +1,4 @@
-const STORE="oekakiQuest.v3";
+const STORE="oekakiQuest.v4";
 const skillDefs={face:{name:"顔",icon:"🙂"},expression:{name:"表情",icon:"✦"},hands:{name:"手",icon:"✋"},body:{name:"全身",icon:"◇"},color:{name:"色",icon:"🎨"},background:{name:"背景",icon:"▧"},composition:{name:"構図",icon:"⌗"},clothes:{name:"衣装",icon:"♢"}};
 const promptPools={expression:["眠そう","むすっと","にやり","やわらかい笑顔","照れている","真剣","驚いている","無表情","泣きそう","得意げ"],pose:["頬杖","腕組み","振り向く","座っている","寝転がる","片手を上げる","髪をかき上げる","こちらを見る","歩いている","背伸び"],outfit:["いつもの服","ゆるい部屋着","シャツ","パーカー","ジャケット","和服","スーツ","大きめニット","制服風","コート"],composition:["顔アップ","胸上","腰上","全身","横顔","斜め後ろ","俯瞰","あおり","左右非対称","余白多め"],extra:["眼鏡","飲み物","本","スマホ","花","お菓子","手袋","ぬいぐるみ","帽子","おまけなし"]};
 const questPools={
@@ -7,9 +7,26 @@ low:[["3分ラフ","3分だけ。完成させなくていい。",12,6,["composit
 normal:[["上半身を描く","胸上〜腰上まで1人描く。",22,11,["face","body"]],["ポーズ付きラフ","棒人間からポーズを1つ。",24,12,["body","composition"]],["衣装アレンジ","いつもと違う服を着せる。",24,12,["clothes"]],["光を意識して塗る","明るい所と暗い所を分ける。",25,13,["color"]],["背景を少し足す","机・窓・椅子など1つ置く。",25,13,["background","composition"]],["苦手部位を1回","手・足・横顔などを1つ練習。",26,13,["hands","body"]]],
 high:[["全身を1体","ラフでもいいので全身を通す。",35,18,["body","composition"]],["完成絵を進める","線画・塗り・仕上げを大きく進める。",50,25,["color","composition"]],["背景込み1枚","簡単な場所を入れて1枚作る。",45,22,["background","composition"]],["苦手を3回描く","苦手部位を3パターン試す。",40,20,["hands","body"]],["衣装デザイン","新しい衣装を1案作る。",40,20,["clothes"]],["昔の絵をリメイク","過去絵を今の描き方で描き直す。",50,25,["face","body","color"]]]
 };
-const achievements=[{id:"first",icon:"✎",name:"最初の一歩",desc:"初めて描いた記録",test:s=>s.draws>=1},{id:"five",icon:"✦",name:"5回描いた",desc:"描いた回数が5回",test:s=>s.draws>=5},{id:"twenty",icon:"★",name:"20回描いた",desc:"描いた回数が20回",test:s=>s.draws>=20},{id:"tiny",icon:"·",name:"1分でも前進",desc:"小さな記録を3回",test:s=>s.tinyWins>=3},{id:"boss",icon:"▣",name:"魔王討伐",desc:"ボスを1回倒す",test:s=>s.bossKills>=1},{id:"face10",icon:"🙂",name:"顔慣れ",desc:"顔EXPが100以上",test:s=>s.skills.face>=100},{id:"hands10",icon:"✋",name:"手に挑んだ",desc:"手EXPが100以上",test:s=>s.skills.hands>=100},{id:"allround",icon:"◇",name:"いろいろ描いた",desc:"6分野以上にEXP",test:s=>Object.values(s.skills).filter(v=>v>0).length>=6}];
-const freshState=()=>({level:1,exp:0,totalExp:0,coins:0,tickets:3,energy:"normal",bossHp:300,bossMax:300,bossKills:0,draws:0,tinyWins:0,questClears:0,characters:["ルシファー","うちの子","推しキャラ"],prompt:{},quests:[],skills:Object.fromEntries(Object.keys(skillDefs).map(k=>[k,0])),logs:[],unlocked:[],pending:null});
+
+const collections=[
+{id:"firststep",type:"badge",icon:"✎",name:"最初の一歩",desc:"初めて描いた記録",goal:s=>s.draws,need:1},
+{id:"draw5",type:"badge",icon:"✦",name:"5枚目の足あと",desc:"描いた回数が5回",goal:s=>s.draws,need:5},
+{id:"draw20",type:"badge",icon:"★",name:"描く人になってきた",desc:"描いた回数が20回",goal:s=>s.draws,need:20},
+{id:"tiny3",type:"badge",icon:"·",name:"1分でも前進",desc:"「1分だけ描いた」を3回",goal:s=>s.tinyWins,need:3},
+{id:"face100",type:"title",icon:"🙂",name:"顔慣れ見習い",desc:"顔EXPを100ためる",goal:s=>s.skills.face,need:100},
+{id:"hands100",type:"title",icon:"✋",name:"手から逃げなかった",desc:"手EXPを100ためる",goal:s=>s.skills.hands,need:100},
+{id:"body100",type:"title",icon:"◇",name:"全身チャレンジャー",desc:"全身EXPを100ためる",goal:s=>s.skills.body,need:100},
+{id:"all6",type:"background",icon:"▧",name:"アトリエ背景",desc:"6分野以上にEXPを入れる",goal:s=>Object.values(s.skills).filter(v=>v>0).length,need:6},
+{id:"quest10",type:"background",icon:"⌗",name:"クエストボード背景",desc:"クエストを10回達成",goal:s=>s.questClears,need:10},
+{id:"boss1",type:"card",icon:"▣",name:"白紙の魔王・討伐証",desc:"白紙の魔王を1回倒す",goal:s=>s.bossKills,need:1},
+{id:"boss3",type:"card",icon:"♛",name:"白紙の魔王・三連勝",desc:"白紙の魔王を3回倒す",goal:s=>s.bossKills,need:3},
+{id:"level5",type:"title",icon:"✧",name:"旅する絵描き",desc:"総合Lv.5に到達",goal:s=>s.level,need:5}
+];
+const typeNames={badge:"バッジ",title:"称号",background:"背景",card:"記念カード"};
+
+const freshState=()=>({level:1,exp:0,totalExp:0,coins:0,tickets:3,energy:"normal",bossHp:300,bossMax:300,bossKills:0,draws:0,tinyWins:0,questClears:0,characters:["ルシファー","うちの子","推しキャラ"],prompt:{},quests:[],skills:Object.fromEntries(Object.keys(skillDefs).map(k=>[k,0])),logs:[],unlocked:[],pending:null,collectionFilter:"all",avatarData:""});
 let state=load();
+
 function load(){try{return {...freshState(),...(JSON.parse(localStorage.getItem(STORE))||{})}}catch{return freshState()}}
 function save(){localStorage.setItem(STORE,JSON.stringify(state))}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
@@ -21,24 +38,149 @@ function skillLevel(x){return Math.floor(x/100)+1}
 function addLog(text){state.logs.push({date:new Date().toISOString(),text});state.logs=state.logs.slice(-40)}
 function toast(text){const t=document.getElementById("toast");t.textContent=text;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1500)}
 function addExp(n){state.exp+=n;state.totalExp+=n;let up=false;while(state.exp>=expNeed()){state.exp-=expNeed();state.level++;state.tickets++;state.coins+=20;up=true}if(up)showLevelUp()}
-function damageBoss(n){state.bossHp=Math.max(0,state.bossHp-n);if(state.bossHp===0){state.bossKills++;state.coins+=100;state.tickets+=3;addLog(`白紙の魔王を撃破！ 周回 ${state.bossKills}`);toast("BOSS CLEAR! 🏆");state.bossMax=300+state.bossKills*50;state.bossHp=state.bossMax}}
+function damageBoss(n){state.bossHp=Math.max(0,state.bossHp-n);if(state.bossHp===0){state.bossKills++;state.coins+=100;state.tickets+=3;addLog(`白紙の魔王を撃破！ 周回 ${state.bossKills}`);state.bossMax=300+state.bossKills*50;state.bossHp=state.bossMax}}
 function skillAdd(tags,amount){[...new Set(tags)].forEach(k=>{if(k in state.skills)state.skills[k]+=amount})}
 function ensureQuests(){if(!state.quests.length)generateQuests(false)}
 function generateQuests(notify=true){state.quests=shuffle(questPools[state.energy]).slice(0,3).map((q,i)=>({id:Date.now()+i,title:q[0],desc:q[1],exp:q[2],coins:q[3],tags:q[4],done:false}));save();renderQuests();if(notify)toast("今の気力向けに更新したよ")}
 function setEnergy(e){state.energy=e;const lines={zero:"今日は軽くていい。1個描けばもう前進。",low:"ちょっとだけ描く日にしよう。",normal:"無理せず、1つ進めてみよう。",high:"今日は伸ばせそう。大きめクエストいける。"};document.getElementById("coachLine").textContent=lines[e];generateQuests(false);save();render()}
-function render(){document.getElementById("level").textContent=state.level;document.getElementById("titleName").textContent=titleFor(state.level);document.getElementById("coins").textContent=state.coins;document.getElementById("tickets").textContent=state.tickets;document.getElementById("ticketInline").textContent=state.tickets;document.getElementById("expText").textContent=`${state.exp} / ${expNeed()}`;document.getElementById("expBar").style.width=`${Math.min(100,state.exp/expNeed()*100)}%`;document.getElementById("bossText").textContent=`${state.bossHp} / ${state.bossMax} HP`;document.getElementById("bossLabel").textContent=`HP ${state.bossHp}`;document.getElementById("bossBar").style.width=`${state.bossHp/state.bossMax*100}%`;document.getElementById("drawCount").textContent=state.draws;document.getElementById("totalExp").textContent=state.totalExp;document.getElementById("bossKills").textContent=state.bossKills;document.getElementById("questCount").textContent=state.questClears;document.querySelectorAll(".energy-card").forEach(b=>b.classList.toggle("active",b.dataset.energy===state.energy));renderQuests();renderPrompt();renderSkills();renderAchievements();renderCharacters();renderLogs()}
-function renderQuests(){const wrap=document.getElementById("questGrid");wrap.innerHTML=state.quests.map(q=>`<article class="quest-card ${q.done?"done":""}"><div class="stars">${"★".repeat(Math.min(5,Math.max(1,Math.ceil(q.exp/12))))}</div><h3>${esc(q.title)}</h3><p>${esc(q.desc)}</p><div class="reward"><span>EXP +${q.exp}</span><span>🪙 +${q.coins}</span></div><button data-id="${q.id}" ${q.done?"disabled":""}>${q.done?"達成済み":"これ描いた！"}</button></article>`).join("");wrap.querySelectorAll("button[data-id]").forEach(btn=>btn.addEventListener("click",()=>{const q=state.quests.find(x=>String(x.id)===btn.dataset.id);if(!q||q.done)return;state.pending={type:"quest",questId:q.id,exp:q.exp,coins:q.coins,tags:q.tags,title:q.title,damage:Math.max(6,Math.round(q.exp*.8))};openComplete(q.tags)}))}
+
+function checkCollections(){
+  const newly=[];
+  collections.forEach(c=>{
+    if(!state.unlocked.includes(c.id) && c.goal(state)>=c.need){
+      state.unlocked.push(c.id);
+      state.coins+=15;
+      addLog(`コレクション解放：${c.name}`);
+      newly.push(c);
+    }
+  });
+  if(newly.length) showUnlockQueue(newly);
+}
+let unlockQueue=[];
+function showUnlockQueue(items){
+  unlockQueue.push(...items);
+  if(document.getElementById("unlockOverlay").classList.contains("show")) return;
+  showNextUnlock();
+}
+function showNextUnlock(){
+  if(!unlockQueue.length) return;
+  const c=unlockQueue.shift();
+  document.getElementById("unlockIcon").textContent=c.icon;
+  document.getElementById("unlockName").textContent=c.name;
+  document.getElementById("unlockType").textContent=typeNames[c.type];
+  document.getElementById("unlockOverlay").classList.add("show");
+}
+function closeUnlock(showCollection=false){
+  document.getElementById("unlockOverlay").classList.remove("show");
+  if(showCollection) switchTab("collection");
+  if(unlockQueue.length) setTimeout(showNextUnlock,250);
+}
+
+function collectionProgress(c){
+  const now=Math.min(c.need,c.goal(state));
+  return {now,need:c.need,left:Math.max(0,c.need-now),ratio:c.need?now/c.need:1};
+}
+function getNextCollection(){
+  const locked=collections.filter(c=>!state.unlocked.includes(c.id)).map(c=>({c,p:collectionProgress(c)}));
+  if(!locked.length) return null;
+  locked.sort((a,b)=>(a.p.left-b.p.left)||(b.p.ratio-a.p.ratio));
+  return locked[0];
+}
+
+function render(){
+  document.getElementById("level").textContent=state.level;document.getElementById("titleName").textContent=titleFor(state.level);document.getElementById("coins").textContent=state.coins;document.getElementById("tickets").textContent=state.tickets;document.getElementById("ticketInline").textContent=state.tickets;
+  document.getElementById("expText").textContent=`${state.exp} / ${expNeed()}`;document.getElementById("expBar").style.width=`${Math.min(100,state.exp/expNeed()*100)}%`;
+  document.getElementById("bossText").textContent=`${state.bossHp} / ${state.bossMax} HP`;document.getElementById("bossLabel").textContent=`HP ${state.bossHp}`;document.getElementById("bossBar").style.width=`${state.bossHp/state.bossMax*100}%`;
+  document.getElementById("drawCount").textContent=state.draws;document.getElementById("totalExp").textContent=state.totalExp;document.getElementById("bossKills").textContent=state.bossKills;document.getElementById("questCount").textContent=state.questClears;
+  document.querySelectorAll(".energy-card").forEach(b=>b.classList.toggle("active",b.dataset.energy===state.energy));
+  renderQuests();renderPrompt();renderSkills();renderCharacters();renderLogs();renderCollections();renderNextUnlock();renderAvatar()
+}
+function renderQuests(){
+  const wrap=document.getElementById("questGrid");
+  wrap.innerHTML=state.quests.map(q=>`<article class="quest-card ${q.done?"done":""}"><div class="stars">${"★".repeat(Math.min(5,Math.max(1,Math.ceil(q.exp/12))))}</div><h3>${esc(q.title)}</h3><p>${esc(q.desc)}</p><div class="reward"><span>EXP +${q.exp}</span><span>🪙 +${q.coins}</span></div><button data-id="${q.id}" ${q.done?"disabled":""}>${q.done?"達成済み":"これ描いた！"}</button></article>`).join("");
+  wrap.querySelectorAll("button[data-id]").forEach(btn=>btn.addEventListener("click",()=>{const q=state.quests.find(x=>String(x.id)===btn.dataset.id);if(!q||q.done)return;state.pending={type:"quest",questId:q.id,exp:q.exp,coins:q.coins,tags:q.tags,title:q.title,damage:Math.max(6,Math.round(q.exp*.8))};openComplete(q.tags)}))
+}
 function openComplete(prefill=[]){state._selectedTags=[...prefill];document.getElementById("drawMemo").value="";renderTagChoices();document.getElementById("completeDialog").showModal()}
 function renderTagChoices(){const wrap=document.getElementById("tagChoices");wrap.innerHTML=Object.entries(skillDefs).map(([k,v])=>`<button type="button" class="tag-choice ${state._selectedTags.includes(k)?"active":""}" data-tag="${k}">${v.icon} ${v.name}</button>`).join("");wrap.querySelectorAll(".tag-choice").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.tag;state._selectedTags=state._selectedTags.includes(k)?state._selectedTags.filter(x=>x!==k):[...state._selectedTags,k];renderTagChoices()}))}
-function finishPending(){const p=state.pending;if(!p)return;const tags=state._selectedTags||[];const memo=document.getElementById("drawMemo").value.trim();state.draws++;addExp(p.exp);state.coins+=p.coins;damageBoss(p.damage);skillAdd(tags,Math.max(8,Math.round(p.exp*.7)));if(p.type==="quest"){const q=state.quests.find(x=>x.id===p.questId);if(q)q.done=true;state.questClears++}if(p.type==="tiny")state.tinyWins++;addLog(`${p.title}（EXP +${p.exp}）${memo?` / ${memo}`:""}`);state.pending=null;checkAchievements();save();render();toast(`EXP +${p.exp} / BOSS -${p.damage}HP`)}
+function finishPending(){
+  const p=state.pending;if(!p)return;
+  const tags=state._selectedTags||[];const memo=document.getElementById("drawMemo").value.trim();
+  state.draws++;addExp(p.exp);state.coins+=p.coins;damageBoss(p.damage);skillAdd(tags,Math.max(8,Math.round(p.exp*.7)));
+  if(p.type==="quest"){const q=state.quests.find(x=>x.id===p.questId);if(q)q.done=true;state.questClears++}
+  if(p.type==="tiny")state.tinyWins++;
+  addLog(`${p.title}（EXP +${p.exp}）${memo?` / ${memo}`:""}`);
+  state.pending=null;checkCollections();save();render();toast(`EXP +${p.exp} / BOSS -${p.damage}HP`)
+}
 function renderPrompt(){document.querySelectorAll(".prompt-card").forEach(card=>{const k=card.dataset.key,val=state.prompt[k];card.querySelector("strong").textContent=val||"？？？";card.querySelector("small").textContent=val?"もう一度で引き直し":"タップで召喚"})}
 function revealPrompt(key,consume){if(consume&&state.prompt[key]){if(state.tickets<=0){toast("引き直し券がない！");return}state.tickets--}let v;if(key==="character")v=pick(state.characters.length?state.characters:["好きなキャラ"]);else v=pick(promptPools[key]);state.prompt[key]=v;const c=document.querySelector(`.prompt-card[data-key="${key}"]`);c.classList.remove("reveal");void c.offsetWidth;c.classList.add("reveal");save();render()}
 function renderSkills(){const wrap=document.getElementById("skillGrid");wrap.innerHTML=Object.entries(skillDefs).map(([k,v])=>{const x=state.skills[k],lv=skillLevel(x),within=x%100;return `<div class="skill-card"><div class="skill-top"><strong>${v.icon} ${v.name}</strong><span>Lv.${lv}</span></div><div class="bar"><div class="fill" style="width:${within}%"></div></div><div class="skill-meta"><span>${x} EXP</span><span>次まで ${100-within}</span></div></div>`}).join("")}
-function checkAchievements(){achievements.forEach(a=>{if(a.test(state)&&!state.unlocked.includes(a.id)){state.unlocked.push(a.id);state.coins+=15;addLog(`実績解除：${a.name}`);toast(`実績解除：${a.name} ✦`)}})}
-function renderAchievements(){const wrap=document.getElementById("achievementGrid");wrap.innerHTML=achievements.map(a=>{const on=state.unlocked.includes(a.id);return `<div class="achievement ${on?"":"locked"}"><div class="achievement-icon">${a.icon}</div><strong>${esc(a.name)}</strong><span>${esc(a.desc)}${on?" / 解除済み":""}</span></div>`}).join("");document.getElementById("achievementCount").textContent=`${state.unlocked.length} / ${achievements.length}`}
 function renderCharacters(){const wrap=document.getElementById("characterList");wrap.innerHTML=state.characters.map((n,i)=>`<span class="chip"><span>${esc(n)}</span><button data-i="${i}">×</button></span>`).join("");wrap.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{state.characters.splice(Number(b.dataset.i),1);save();renderCharacters()}))}
 function renderLogs(){const wrap=document.getElementById("logList");if(!state.logs.length){wrap.innerHTML='<p class="empty">まだ冒険記録はありません。</p>';return}wrap.innerHTML=state.logs.slice().reverse().map(x=>{const d=new Date(x.date),ds=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;return `<div class="log-item"><strong>${esc(x.text)}</strong><span>${ds}</span></div>`}).join("")}
+
+function renderCollections(){
+  const wrap=document.getElementById("collectionGrid");
+  const items=collections.filter(c=>state.collectionFilter==="all"||c.type===state.collectionFilter);
+  wrap.innerHTML=items.map(c=>{
+    const unlocked=state.unlocked.includes(c.id),p=collectionProgress(c);
+    return `<article class="collect-item ${unlocked?"":"locked"}">
+      <div class="collect-icon">${unlocked?c.icon:"?"}</div>
+      <div class="collect-type">${typeNames[c.type]}</div>
+      <strong>${unlocked?esc(c.name):"？？？？"}</strong>
+      <p>${unlocked?esc(c.desc):esc(c.desc)}</p>
+      <div class="collect-progress">${unlocked?"解放済み":`あと ${p.left} / ${c.need}`}</div>
+    </article>`
+  }).join("");
+  document.getElementById("collectionCount").textContent=`${state.unlocked.length} / ${collections.length}`
+}
+function renderNextUnlock(){
+  const wrap=document.getElementById("nextUnlockCard");
+  const next=getNextCollection();
+  if(!next){wrap.innerHTML='<div class="next-main"><strong>全部集まった！</strong><span>現在のコレクションはコンプリート。</span></div>';return}
+  const {c,p}=next;
+  wrap.innerHTML=`<div class="next-icon">${c.icon}</div><div class="next-main"><strong>${esc(c.name)}</strong><span>${esc(c.desc)}</span></div><div class="progress-text">あと ${p.left}</div>`
+}
+
+
+function renderAvatar(){
+  const avatar=document.getElementById("avatarButton");
+  if(!avatar)return;
+  if(state.avatarData){
+    avatar.style.backgroundImage=`url(${state.avatarData})`;
+    avatar.classList.add("has-image");
+    avatar.textContent="";
+  }else{
+    avatar.style.backgroundImage="";
+    avatar.classList.remove("has-image");
+    avatar.textContent="✎";
+  }
+}
+function chooseAvatar(){document.getElementById("avatarInput").click()}
+function saveAvatarFile(file){
+  if(!file||!file.type.startsWith("image/")){toast("画像ファイルを選んでね");return}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const size=256,canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext("2d");
+      const side=Math.min(img.width,img.height),sx=(img.width-side)/2,sy=(img.height-side)/2;
+      ctx.drawImage(img,sx,sy,side,side,0,0,size,size);
+      state.avatarData=canvas.toDataURL("image/jpeg",0.86);
+      save();renderAvatar();toast("プレイヤーアイコンを変更したよ");
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
 function showLevelUp(){document.getElementById("levelUpText").textContent=`Lv.${state.level}`;document.getElementById("levelUp").classList.add("show")}
+function switchTab(name){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
+  document.querySelectorAll(".tab-page").forEach(p=>p.classList.toggle("active",p.id===`tab-${name}`));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
+document.querySelectorAll(".filter-btn").forEach(b=>b.addEventListener("click",()=>{state.collectionFilter=b.dataset.filter;document.querySelectorAll(".filter-btn").forEach(x=>x.classList.toggle("active",x===b));renderCollections();save()}));
 document.querySelectorAll(".energy-card").forEach(b=>b.addEventListener("click",()=>setEnergy(b.dataset.energy)));
 document.getElementById("refreshQuests").addEventListener("click",()=>generateQuests());
 document.getElementById("tinyWinBtn").addEventListener("click",()=>{state.pending={type:"tiny",exp:5,coins:2,tags:[],title:"1分だけ描いた",damage:5};openComplete([])});
@@ -48,8 +190,14 @@ document.getElementById("clearPrompt").addEventListener("click",()=>{state.promp
 document.getElementById("completeForm").addEventListener("submit",e=>{if(e.submitter?.value==="cancel"){state.pending=null;return}e.preventDefault();finishPending();document.getElementById("completeDialog").close()});
 document.getElementById("addCharacterBtn").addEventListener("click",()=>{document.getElementById("characterName").value="";document.getElementById("characterDialog").showModal()});
 document.getElementById("characterForm").addEventListener("submit",e=>{if(e.submitter?.value==="cancel")return;e.preventDefault();const n=document.getElementById("characterName").value.trim();if(!n){toast("キャラ名を入れてね");return}state.characters.push(n);save();renderCharacters();document.getElementById("characterDialog").close();toast(`${n} を追加したよ`)});
+document.getElementById("avatarButton").addEventListener("click",chooseAvatar);
+document.getElementById("changeAvatarBtn").addEventListener("click",chooseAvatar);
+document.getElementById("avatarInput").addEventListener("change",e=>{const file=e.target.files?.[0];if(file)saveAvatarFile(file);e.target.value=""});
 document.getElementById("levelUp").addEventListener("click",e=>e.currentTarget.classList.remove("show"));
+document.getElementById("unlockClose").addEventListener("click",()=>closeUnlock(true));
+document.getElementById("unlockOverlay").addEventListener("click",e=>{if(e.target===e.currentTarget)closeUnlock(false)});
 document.getElementById("themeBtn").addEventListener("click",()=>{document.body.classList.toggle("dark");const dark=document.body.classList.contains("dark");document.getElementById("themeBtn").textContent=dark?"☀":"☾";localStorage.setItem("oekakiQuest.theme",dark?"dark":"light")});
 if(localStorage.getItem("oekakiQuest.theme")==="dark"){document.body.classList.add("dark");document.getElementById("themeBtn").textContent="☀"}
 document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("試作版のデータをすべて初期化しますか？")){localStorage.removeItem(STORE);state=freshState();ensureQuests();save();render();toast("初期化しました")}});
-ensureQuests();checkAchievements();render();
+
+ensureQuests();checkCollections();save();render();
